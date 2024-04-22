@@ -15,6 +15,16 @@ func (h *Handler) CreateIc(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error parsing request data", http.StatusBadRequest)
 		return
 	}
+
+	wallet, err := h.CreateWallet(ic.IcIp)
+    if err != nil {
+        http.Error(w, "Failed to create wallet: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    ic.WalletID = wallet.WalletID
+    ic.PaymailID = wallet.PaymailID
+
 	if result := h.DB.Create(&ic); result.Error != nil {
 		http.Error(w, "Error creating user", http.StatusInternalServerError)
 		return

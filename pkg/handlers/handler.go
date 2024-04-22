@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -104,7 +105,75 @@ func (h *Handler) CreateWallet(walletName string) (models.Wallet, error) {
     return wallet, nil
 }
 
-// GetUser retrieves a user by ID
-func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
-    // Logic to retrieve user
+
+func (h *Handler) GetUserByEmailAndPassword(w http.ResponseWriter, r *http.Request) {
+    // Decode JSON request body into a struct
+    var request struct {
+        Email    string `json:"email"`
+        Password string `json:"password"`
+    }
+
+    if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+        http.Error(w, "Error parsing request body", http.StatusBadRequest)
+        return
+    }
+
+    // Fetch user from the database
+    var user models.User
+    if err := h.DB.Where("email = ? AND password = ?", request.Email, request.Password).First(&user).Error; err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            http.Error(w, "User not found", http.StatusNotFound)
+        } else {
+            http.Error(w, "Error fetching user from database", http.StatusInternalServerError)
+        }
+        return
+    }
+
+    // Respond with the fetched user
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(user)
+}
+
+
+func (h *Handler) ListUsers(w http.ResponseWriter, r *http.Request) {
+    var listOfUsers []models.User
+
+    if err := h.DB.Find(&listOfUsers).Error; err != nil {
+        http.Error(w, "Error fetching list of users from database", http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(listOfUsers)
+}
+
+
+
+func (h *Handler) GetIc(w http.ResponseWriter, r *http.Request) {
+    // Decode JSON request body into a struct
+    var request struct {
+        IcIp string `json:"ic_ip"`
+    }
+
+    if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+        http.Error(w, "Error parsing request body", http.StatusBadRequest)
+        return
+    }
+
+    // Fetch IC details from the database
+    var ic models.Ic
+    if err := h.DB.Where("ic_ip = ?", request.IcIp).First(&ic).Error; err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            http.Error(w, "IC not found", http.StatusNotFound)
+        } else {
+            http.Error(w, "Error fetching IC details from database", http.StatusInternalServerError)
+        }
+        return
+    }
+
+    // Respond with the fetched IC details
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(ic)
 }

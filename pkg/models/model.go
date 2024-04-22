@@ -16,10 +16,10 @@ type User struct {
 
 type Ic struct {
     gorm.Model
-    Name string
     IcIp string
     IcNgrokUrl string
-    WalletId string
+    WalletID string
+    PaymailID string
 }
 
 type Wallet struct {

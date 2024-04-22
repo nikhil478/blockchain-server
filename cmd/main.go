@@ -21,7 +21,9 @@ func main() {
 
 	http.HandleFunc("/create_user", handler.CreateUser)
 	http.HandleFunc("/create_ic", handler.CreateIc)
-	http.HandleFunc("/get_user", handler.GetUser)
+	http.HandleFunc("/get_ic", handler.GetIc)
+	http.HandleFunc("/get_user", handler.GetUserByEmailAndPassword)
+	http.HandleFunc("/user_list", handler.ListUsers)
 
 	log.Println("Server starting on port 8080...")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
